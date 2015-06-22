@@ -3,7 +3,7 @@ Starting process: module
 Starting process: 
 
 SCUBA, Version Diamond_2.0_Production (151)
-Wed Mar 19 09:01:48 2014
+Tue Jun 16 16:05:51 2015
 
 Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
 Copyright (c) 1995 AT&T Corp.   All rights reserved.
@@ -13,7 +13,7 @@ Copyright (c) 2002-2012 Lattice Semiconductor Corporation,  All rights reserved.
 
 BEGIN SCUBA Module Synthesis
 
-    Issued command   : C:\Program Files\lscc\diamond\2.0\ispfpga\bin\nt64\scuba.exe -w -n ps2_fifo -lang vhdl -synth synplify -bus_exp 7 -bb -arch mg5a00 -type fifoblk -pfu_fifo -addr_width 2 -data_width 8 -num_words 4 -no_enable -pe -1 -pf -1 -e 
+    Issued command   : C:\Program Files\Lattice\Diamond2.0\diamond\2.0\ispfpga\bin\nt64\scuba.exe -w -n ps2_fifo -lang vhdl -synth synplify -bus_exp 7 -bb -arch mg5a00 -type fifoblk -pfu_fifo -addr_width 2 -data_width 8 -num_words 4 -no_enable -pe -1 -pf -1 -e 
     Circuit name     : ps2_fifo
     Module type      : fifoblk
     Module Version   : 4.8

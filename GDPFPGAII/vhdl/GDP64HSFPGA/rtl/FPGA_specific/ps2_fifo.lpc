@@ -1,23 +1,23 @@
 [Device]
-Family=mg5g00
-PartType=LFXP6C
-PartName=LFXP6C-3T144C
-SpeedGrade=-3
-Package=TQFP144
+Family=latticexp2
+PartType=LFXP2-8E
+PartName=LFXP2-8E-5QN208C
+SpeedGrade=5
+Package=PQFP208
 OperatingCondition=COM
-Status=P
+Status=S
 
 [IP]
 VendorName=Lattice Semiconductor Corporation
 CoreType=LPM
 CoreStatus=Demo
 CoreName=FIFO
-CoreRevision=4.1
+CoreRevision=4.8
 ModuleName=ps2_fifo
-SourceFormat=Schematic/VHDL
+SourceFormat=VHDL
 ParameterFileVersion=1.0
-Date=06/16/2007
-Time=11:26:55
+Date=06/16/2015
+Time=16:05:51
 
 [Parameters]
 Verilog=0
@@ -29,16 +29,17 @@ Order=Big Endian [MSB:LSB]
 IO=0
 FIFOImp=LUT Based
 Depth=4
-Width=7
+Width=8
 regout=0
 CtrlByRdEn=0
 EmpFlg=0
-PeMode=Static - Single Threshold
+PeMode=Static - Dual Threshold
 PeAssert=10
 PeDeassert=12
 FullFlg=0
-PfMode=Static - Single Threshold
+PfMode=Static - Dual Threshold
 PfAssert=508
 PfDeassert=506
 RDataCount=0
 EnECC=0
+EnFWFT=0
