@@ -1,0 +1,88 @@
+Bildschirmspeicher:
+===================
+
+A) Mono-Mode:
+-------------
+XRES = 256
+YRES = 512
+
+addr = posy * (256/8) + posx/8
+
+addr_min = 0
+addr_max = 511 * (256/8) + (255-7) / 8 = 16383 = 0x3fff    : 255-7 : 255 ist letzter Pixel, 255-7 ist erster Pixel im letzten Byte
+
+Jede Adresse/Speicherstelle (Byte) liefert 8 Pixel: Bit7 = erstes Pixel, Bit0 = letztes Pixel
+
+=> Speicherbedarf/Seite = 512*256 / 8 = 0x4000 (16k)Bytes, 4 Seiten => 0x10000 (64k)Byte 
+
+Offset Page 0: 0x00000
+Offset Page 1: 0x04000
+Offset Page 2: 0x06000
+Offset Page 3: 0x08000
+
+
+membase         equ $00800000*cpu
+memsize         equ $8FFF
+pagesize        equ $3fff
+
+B) Color-Mode:
+--------------
+
+
+
+XRES = 256
+YRES = 512
+
+addr = posy * (256/2) + posx/2
+
+addr_min = 0
+addr_max = 511 * (256/2) + (255-1) / 2 = 65535 = 0xffff 
+
+Jede Adresse/Speicherstelle (Byte) liefert 2 Pixel: High-Nibble = Pixel 1, Low-Nibble = Pixel 2
+
+
+
+=> Speicherbedarf/Seite = 512*256 / 2 = 0x10000 (64k)Bytes, 4 Seiten => 0x40000 (256k)Bytes
+
+Offset Page 0: 0x00000
+Offset Page 1: 0x10000
+Offset Page 2: 0x20000
+Offset Page 3: 0x30000
+
+membase         equ $0070.0000*4
+memsize         equ $3FFFF
+pagesize        equ $ffff
+
+Erster Pixel ist unten links
+Letzter Pixel ist oben rechts
+
+
+Addressbereich 68020: 2^32 => $0 - $ffff.ffff  (4GByte)
+Addressbereich 68000: 2^24 => $0 - $00ff.ffff  (16MByte)
+
+68000:
+------
+fe.0000 -> IO Bereich
+
+fd.0000 -> page3
+fc.0000 -> page2
+fb.0000 -> page1
+fa.0000 -> page0
+
+=> decode fa.0000/2 = $7d.0000  (maximal möglich für 68000)
+
+Decodierte Addressleitungen:
+A0..23
+
+
+68020:
+------
+
+1C0.0000 -> erste Adresse für Mapping => 70.0000 => b1110000
+1Bf.ffff -> letzte RAM Adresse bei Vollausbau mit RAM Karte
+
+- für 68020 ist der Speicher bei $0070.0000*4 = $1C0.0000 (29360128==>28MByte) eingeblendet
+  -> das ist ok, sogar mit Vollausbau der RAM Karte liegt das genau oberalb der dann möglichen 24+4=28MB RAM
+  -> Weitere RAM Karten für den 68020 müssten dann mit dieser Belegung an anderer Stelle in's RAM eingeblendet werden
+  
+- für 60000 ist der Speicher bei $0070.0000*2 = $0E0.0000 (14 MByte) eingeblendet

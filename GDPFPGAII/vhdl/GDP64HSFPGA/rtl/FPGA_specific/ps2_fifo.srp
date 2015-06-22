@@ -1,0 +1,42 @@
+SCUBA, Version ispLever_v61_PROD_Build (37)
+Sat Jun 16 11:26:55 2007
+
+Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
+Copyright (c) 1995 AT&T Corp.   All rights reserved.
+Copyright (c) 1995-2001 Lucent Technologies Inc.  All rights reserved.
+Copyright (c) 2001 Agere Systems   All rights reserved.
+Copyright (c) 2002-2006 Lattice Semiconductor Corporation,  All rights reserved.
+
+    Issued command   : C:\ispTOOLS6_1_STRT\ispfpga\bin\nt\scuba.exe -w -n ps2_fifo -lang vhdl -synth synplify -bus_exp 7 -bb -arch mg5g00 -type fifoblk -pfu_fifo -addr_width 2 -data_width 7 -num_words 4 -no_enable -pe -1 -pf -1 -e 
+    Circuit name     : ps2_fifo
+    Module type      : fifoblk
+    Module Version   : 4.1
+    Ports            : 
+	Inputs       : Data[6:0], Clock, WrEn, RdEn, Reset
+	Outputs      : Q[6:0], Empty, Full
+    I/O buffer       : not inserted
+    EDIF output      : suppressed
+    VHDL output      : ps2_fifo.vhd
+    VHDL template    : ps2_fifo_tmpl.vhd
+    VHDL testbench    : tb_ps2_fifo_tmpl.vhd
+    VHDL purpose     : for synthesis and simulation
+    Bus notation     : big endian
+    Report output    : ps2_fifo.srp
+    Element Usage    :
+          AGEB2 : 2
+          ALEB2 : 2
+           AND2 : 4
+            CB2 : 2
+            CU2 : 4
+       DPR16X2B : 4
+          FADD2 : 1
+        FD1P3DX : 16
+        FD1S3BX : 1
+        FD1S3DX : 1
+            INV : 4
+        ROM16X1 : 2
+           XOR2 : 1
+    Estimated Resource Usage:
+            LUT : 29
+           DRAM : 8
+            Reg : 18

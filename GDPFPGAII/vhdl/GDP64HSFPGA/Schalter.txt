@@ -1,0 +1,115 @@
+
+Es kann im Sourcecode zwischen Farbe / Monochrom (kompatibel) umgeschaltet
+werden durch umsetzen einer Konstanten im Package gdp_global-p.vhd
+GDP64HS-FPGA\vhdl\rtl\gdp_global-p.vhd
+
+Zeile 22:
+constant color_support_c : boolean :=true;
+Wird diese Konstante auf false gesetzt und danach eine neue Synthese mit
+ispLever gestartet so wird ein .jed File für eine monochrome GDP erzeugt
+(nur ein Speicherchip bestückt). Alle anderen Features (Timer, SPI, ...)
+sind identisch
+
+
+
+
+
+
+
+in gdp_lattice_top.vhd:
+
+ constant use_ser_key_c   : boolean := false;
+  constant use_ps2_key_c   : boolean := true;
+  constant use_ps2_mouse_c : boolean := true;
+  constant use_ser1_c      : boolean := true;
+  constant use_sound_c     : boolean := true;
+  constant use_spi_c       : boolean := true;
+  constant use_timer_c      : boolean := true;
+  constant dipswitches_c   : std_logic_vector(7 downto 0) := X"49";
+--  constant dipswitches1_c : std_logic_vector(7 downto 0) := X"01";
+  
+  constant GDP_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"70"; -- r/w
+  constant SFR_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"60"; -- w  
+  constant COL_BASE_c         : std_ulogic_vector(7 downto 0) := X"A0"; -- r/w  
+  constant KEY_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"68"; -- r  
+  constant DIP_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"69"; -- r  
+  constant MOUSE_BASE_ADDR_c  : std_ulogic_vector(7 downto 0) := X"88"; -- r/w  
+  constant SER_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"F0"; -- r/w  
+  constant SOUND_BASE_ADDR_c  : std_ulogic_vector(7 downto 0) := X"50"; -- r/w  
+  constant SPI_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"00"; -- r/w 
+  constant T1_BASE_ADDR_c     : std_ulogic_vector(7 downto 0) := X"F4"; -- r/w 
+  
+  constant KEY_OPTS_ADDR_c    : std_ulogic_vector(7 downto 0) := X"67"; -- r/w    
+  
+  
+in gdp_global-p.vhd - constant color_support_c : boolean :=true; -> 2 Speicherbausteine notwendig !!
+
+in gdp_lattice_top.vhd:
+-- Bedeutung der Bits:
+--         1 0 0 1  = 0x09 (GDP64-HS)					gdp64hs_fpga-003.jed   (nur mit dieser läuft bisher FLOMON4)
+--     1 0 1 0 0 1  = 0x29 (IDE, GDP64-HS)				gdp64hs_fpga-002.jed
+--   1 0 0 1 0 0 1  = 0x49						
+--   1 1 0 1 0 0 1  = 0x69 (GDP-FPGA, GDP-HS, IDE)			gdp64hs_fpga-001.jed *
+--   1 1 0 1 1 0 1  = 0x6D (GDP-FPGA, GDP-HS, IDE, UHR)			gdp64hs_fpga-006.jed *
+-- 7 6 5 4 3 2 1 0  
+-- | | | | | | | | Reserviert (?: 1= neues Menu, 0= altes Menu)
+-- | | | | | | | Autoboot beim Starten des Rechners
+-- | | | | | | Uhrenbaugruppe vorhanden
+-- | | | | | GDP64HS vorhanden
+-- | | | | SCSI-HARDDISK vorhanden
+-- | | | IDE-Disk vorhanden
+-- | | GDP-FPGA vorhanden
+-- | Reserviert 
+
+
+
+
+in gdp_global-p.vhd - constant color_support_c : boolean :=false; -> 1 Speicherbausteine notwendig !!	
+
+gdp64hs_fpga-004.jed		- IDE, GDP HS	
+
+gdp64hs_fpga-005.jed		- DIP extern
+
+
+
+
+$FFFFFF67 = keyboard/cpu mode register (ps2keyboard.vhd)
+
+-- 7 6 5 4 3 2 1 0  
+-- | | | | | | | | 0 - NKC-Mode, 1 - PC (ScanCode-Mode)
+-- | | | | | | | 0 - 68020 , 1 - 68000   -> dient der Unterschiedlichen Behandlung der Addressleitungen bei direktem Bildschirmspeicher-Zugriff
+-- | | | | | | Reserviert
+-- | | | | | Reserviert
+-- | | | | Reserviert
+-- | | | Reserviert
+-- | | Reserviert
+-- | 1 => Kbd Data Available 
+
+
+$FFFFFF72 - CTRL 2
+7 6 5 4 3 2 1 0
+| | | | | | | |
+| | | | | | ----- Art der Vektoren
+| | | | | ------- 1 = Buchstaben kursiv
+| | | | --------- 1 = Buchstaben vertikal
+| | | ----------- 1 = USER-Zeichensatz
+| | ------------- 1 = Transparent-Mode
+| --------------- 1 = Hardware-Cursor enable  <---- NEU
+----------------- frei
+
+
+
+
+FloMON4
+
+FLOMONCG
+
+
+
+gdp64hs_fpga-090813-001.jed -- in PS2_Decoder.vhd:
+Abfrage der Alt/AltGr Tasten für zusätzliche Zeichencodes {[]}\~|€µ hinzugefügt.
+
+
+Zeichensatz der Grafikkarte:
+ToDo: Pfeil nach links durch Unterstrich ersetzen (LINUX)
+- gdp_font*.vhd  

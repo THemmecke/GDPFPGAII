@@ -1,0 +1,44 @@
+NET "B_A(20)"			LOC = 	"29"	;     
+NET "B_A(21)"			LOC = 	"30"	;     
+NET "B_A(22)"			LOC = 	"31"	;     
+NET "B_A(23)"			LOC = 	"32"	;     
+NET "B_A(24)"			LOC = 	"33"	;     
+NET "B_A(25)"			LOC = 	"36"	;     
+NET "B_A(26)"			LOC = 	"39"	;     
+NET "B_A(27)"			LOC = 	"40"	;     
+NET "B_A(28)"			LOC = 	"41"	;     
+NET "B_A(29)"			LOC = 	"42"	;  
+ 
+NET "B_WAIT"			LOC = 	"37"	;  
+NET "F_WAIT"			LOC = 	"27";
+
+NET "B_NMI"			LOC = 	"44"	;       
+NET "F_NMI"			LOC = 	"23"	;
+
+NET "F_INT"			LOC = 	"22"	;     
+NET "B_INT"			LOC = 	"2"	;        
+  
+NET "B_IRQ(0)"			LOC = 	"1"	;       
+NET "B_IRQ(1)"			LOC = 	"43"	;      
+NET "F_IRQ(0)"		LOC = 	"21"	;    
+NET "F_IRQ(1)"		LOC = 	"20"	;    
+    
+NET "B_IORQ"			LOC = 	"3"	;      
+NET "B_MEMRQ"		LOC = 	"7"	;     
+NET "F_IORQ"		LOC = 	"16"	;    
+NET "F_MEMRQ"		LOC = 	"13"	;   
+
+NET "B_SIZ0"			LOC = 	"6"	;       
+NET "B_SIZ1"			LOC = 	"5"	;       
+NET "F_SIZ0"			LOC = 	"18"	;       
+NET "F_SIZ1"			LOC = 	"14"	;       
+
+
+NET "B_RESET"		LOC = 	"8"	;    
+NET "F_RESET"		LOC = 	"28"	;  
+
+NET "JP2"		LOC = 	"38"	;  
+NET "JP3"		LOC = 	"34"	;  
+NET "JP4"		LOC = 	"19"	;  
+NET "JP5"		LOC = 	"12"	;  
+                                   

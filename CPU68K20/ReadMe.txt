@@ -1,0 +1,2 @@
+- Zugriff auf GDPHS SRAM 8Bit Breit
+- GDPHS SRAM Base: $0070.0000*cpu

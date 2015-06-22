@@ -1,0 +1,44 @@
+[Device]
+Family=mg5g00
+PartType=LFXP6C
+PartName=LFXP6C-3T144C
+SpeedGrade=-3
+Package=TQFP144
+OperatingCondition=COM
+Status=P
+
+[IP]
+VendorName=Lattice Semiconductor Corporation
+CoreType=LPM
+CoreStatus=Demo
+CoreName=FIFO
+CoreRevision=4.1
+ModuleName=ps2_fifo
+SourceFormat=Schematic/VHDL
+ParameterFileVersion=1.0
+Date=06/16/2007
+Time=11:26:55
+
+[Parameters]
+Verilog=0
+VHDL=1
+EDIF=1
+Destination=Synplicity
+Expression=BusA(0 to 7)
+Order=Big Endian [MSB:LSB]
+IO=0
+FIFOImp=LUT Based
+Depth=4
+Width=7
+regout=0
+CtrlByRdEn=0
+EmpFlg=0
+PeMode=Static - Single Threshold
+PeAssert=10
+PeDeassert=12
+FullFlg=0
+PfMode=Static - Single Threshold
+PfAssert=508
+PfDeassert=506
+RDataCount=0
+EnECC=0
