@@ -2,7 +2,7 @@
 <BaliProject version="2.0" title="GDPFPGAII" device="LFXP6C-5Q208C" default_implementation="GDPFPGAII">
     <Options/>
     <Implementation title="GDPFPGAII" dir="GDPFPGAII" description="GDPFPGAII" default_strategy="Strategy1">
-        <Options top="gdp_fpgaii_top"/>
+        <Options def_top="gdp_fpgaii_top" top="gdp_fpgaii_top"/>
         <Source name="GDPFPGAII/vhdl/gdp_fpgaii_top.vhd" type="VHDL" type_short="VHDL">
             <Options top_module="gdp_fpgaii_top"/>
         </Source>
