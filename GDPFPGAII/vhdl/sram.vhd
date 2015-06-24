@@ -55,13 +55,20 @@ architecture sram_1 of sram is
  signal ack,next_ack :  std_logic;
  signal next_wr_data :  std_logic_vector(15 downto 0);
  signal next_rd_data :  std_logic_vector(15 downto 0);
+ signal sram_wbs_strobe_d :  std_logic;
 		
+ constant use_variante_1_c   : boolean := false;		
+ constant use_variante_2_c   : boolean := false;		
+ constant use_variante_3_c   : boolean := false;
+ constant use_variante_4_c   : boolean := true;		
 		
 begin
-
+	
+	-- ############################################ Variante 1 ################################################################
+	var1: if use_variante_1_c generate
 	 sram_wbs_ack <= sram_wbs_strobe;
 	 
-  ----------------------------------------------------------------------------
+    ----------------------------------------------------------------------------
 	-- address decoding
 	-- ----------------------------------------------------------------------------	 
 	
@@ -80,100 +87,176 @@ begin
 	 
 	 SRAM_DB <= sram_wbs_writedata when (sram_wbs_write = '1') else (others => 'Z');
 	 
+	 end generate;
 	 
--- 	 -- define state changes
--- 	 process (sram_clk, sram_reset_n)
--- 	 begin
--- 	 	next_state <= state;
--- 	 	
--- 	 	set_ram_address <= '0';
--- 	 	next_ram_cs <= '0';
--- 	 	next_ack <= '0';
--- 	 		
--- 	 	case state is
--- 	 		when idle_e =>
--- 	 			if(sram_wbs_strobe = '1') then
--- 	 				if(sram_wbs_write = '1') then
--- 	 					next_state <= write_e;
--- 	 					set_ram_address <= '1';
--- 	 					next_ram_cs <= '1';
--- 	 					next_wr_data <= sram_wbs_writedata;
--- 	 				else
--- 	 					next_state <= read_e;
--- 	 					set_ram_address <= '1';
--- 	 					next_ram_cs <= '1';
--- 	 				end if;
--- 	 			end if;
--- 	 				
--- 	 		when read_e =>
--- 	 			next_ack <= '1';
--- 	 			set_ram_address <= '1';
--- 	 			next_ram_cs <= '1';
--- 	 			if(sram_wbs_strobe = '0') then
--- 	 				next_state <= idle_e;
--- 	 				set_ram_address <= '0';
--- 	 				next_ram_cs <= '0';	 				
--- 	 			end if;
--- 	 			
--- 	 		when write_e =>
--- 	 			next_ack <= '1';
--- 	 			set_ram_address <= '1';
--- 	 			next_ram_cs <= '1';
--- 	 			if(sram_wbs_strobe = '0') then
--- 	 				next_state <= idle_e;
--- 	 				set_ram_address <= '0';
--- 	 				next_ram_cs <= '0';
--- 	 			end if;
--- 	 		when others =>
--- 	 			next_state <= idle_e;
--- 	 	end case;
--- 
--- 	 end process;
--- 	 
--- 	 -- set signals
--- 	 process (sram_clk, sram_reset_n)
--- 	 begin
--- 	 	if sram_reset_n = '0' then
--- 	 		SRAM_ADDR(17 downto 0) <= (others => '0');
--- 	 		SRAM_nCS0 <= '0';
--- 	 		SRAM_nCS1 <= '0';
--- 	 		SRAM_nBLE <= '0';
--- 	 		SRAM_nBHE <= '0'; 
--- 	 		SRAM_nWR  <= '0';
--- 	 		SRAM_nOE  <= '0';
--- --	 		SRAM_DB <= (others => 'Z');
--- --	 		sram_wbs_readdata <= (others => '0');
--- 	 		
--- 	 	elsif rising_edge(sram_clk) then
--- 	 		state <= next_state;
--- 	 		ack <= next_ack;
--- 	 		
--- 	 		if set_ram_address  = '1' then
---           	SRAM_ADDR(17 downto 0) <= sram_wbs_address(17 downto 0);          	
--- 	 			SRAM_nBLE <= not sram_wbs_sel(0);
--- 	 			SRAM_nBHE <= not sram_wbs_sel(1);	 
--- 	 			SRAM_nWR  <= not sram_wbs_write;
--- 	 			SRAM_nOE  <= sram_wbs_write;
---         	end if;
---         	
--- 			if next_ram_cs = '1' then 
--- 				SRAM_nCS0 <= sram_wbs_address(18);
--- 				SRAM_nCS1 <= not sram_wbs_address(18);
--- 			end if;
--- 	 	
--- 	 		
--- 	 		
--- 	 	end if;
--- 	 end process;
--- 	 
--- 	 sram_wbs_ack <= ack;
--- 	 
--- --	 SRAM_ADDR(17 downto 0) <= sram_wbs_address(17 downto 0);          	
--- --	 SRAM_nBLE <= not sram_wbs_sel(0);
--- --	 SRAM_nBHE <= not sram_wbs_sel(1);	 
--- --	 SRAM_nWR  <= not sram_wbs_write;
--- --	 SRAM_nOE  <= sram_wbs_write;
 	 
+	 -- ############################################ Variante 2 ################################################################
+	 var2: if use_variante_2_c generate
+	 Process(sram_reset_n,sram_wbs_strobe)
+	 begin
+		if(sram_reset_n = '0') then
+		    sram_wbs_ack <= '0';
+			SRAM_nCS0 <= '1';
+			SRAM_nCS1 <= '1';
+			SRAM_nBLE <= '1';
+			SRAM_nBHE <= '1';
+			SRAM_nWR  <= '1';
+			SRAM_nOE  <= '1';
+			--sram_wbs_readdata <= (others => '-');
+			--SRAM_DB <= (others => '-');
+			--SRAM_ADDR <= <= (others => '-');
+		elsif( rising_edge(sram_wbs_strobe) ) then
+		    sram_wbs_ack <= sram_wbs_strobe;
+			SRAM_nCS0 <= sram_wbs_address(18);
+			SRAM_nCS1 <= not sram_wbs_address(18);
+			SRAM_nBLE <= not sram_wbs_sel(0);
+			SRAM_nBHE <= not sram_wbs_sel(1);
+			SRAM_nWR  <= not sram_wbs_write;
+			SRAM_nOE  <= sram_wbs_write;
+			--sram_wbs_readdata <= (others => '-');
+			--SRAM_DB <= (others => '-');
+			--SRAM_ADDR <= <= (others => '-');
+		end if;
+	 end process;	 
+	 
+	 SRAM_DB <= sram_wbs_writedata when (sram_wbs_write = '1') else (others => 'Z');
+	 sram_wbs_readdata <= SRAM_DB;
+	 SRAM_ADDR <= sram_wbs_address(17 downto 0);
+	 
+	 end generate;
+	 
+	 
+	 -- ############################################ Variante 3 ################################################################
+	 var3: if use_variante_3_c generate
+ 	 -- define state changes
+ 	 process (sram_clk, sram_reset_n)
+ 	 begin
+ 	 	next_state <= state;
+ 	 	
+ 	 	set_ram_address <= '0';
+ 	 	next_ram_cs <= '0';
+ 	 	next_ack <= '0';
+ 	 		
+ 	 	case state is
+ 	 		when idle_e =>
+ 	 			if(sram_wbs_strobe = '1') then
+ 	 				if(sram_wbs_write = '1') then
+ 	 					next_state <= write_e;
+ 	 					set_ram_address <= '1';
+ 	 					next_ram_cs <= '1';
+ 	 					next_wr_data <= sram_wbs_writedata;
+ 	 				else
+ 	 					next_state <= read_e;
+ 	 					set_ram_address <= '1';
+ 	 					next_ram_cs <= '1';
+ 	 				end if;
+ 	 			end if;
+ 	 				
+ 	 		when read_e =>
+ 	 			next_ack <= '1';
+ 	 			set_ram_address <= '1';
+ 	 			next_ram_cs <= '1';
+ 	 			if(sram_wbs_strobe = '0') then
+ 	 				next_state <= idle_e;
+ 	 				set_ram_address <= '0';
+ 	 				next_ram_cs <= '0';	 				
+ 	 			end if;
+ 	 			
+ 	 		when write_e =>
+ 	 			next_ack <= '1';
+ 	 			set_ram_address <= '1';
+ 	 			next_ram_cs <= '1';
+ 	 			if(sram_wbs_strobe = '0') then
+ 	 				next_state <= idle_e;
+ 	 				set_ram_address <= '0';
+ 	 				next_ram_cs <= '0';
+ 	 			end if;
+ 	 		when others =>
+ 	 			next_state <= idle_e;
+ 	 	end case;
+ 
+ 	 end process;
+ 	 
+ 	 -- set signals
+ 	 process (sram_clk, sram_reset_n)
+ 	 begin
+ 	 	if sram_reset_n = '0' then
+ 	 		SRAM_ADDR(17 downto 0) <= (others => '0');
+ 	 		SRAM_nCS0 <= '0';
+ 	 		SRAM_nCS1 <= '0';
+ 	 		SRAM_nBLE <= '0';
+ 	 		SRAM_nBHE <= '0'; 
+ 	 		SRAM_nWR  <= '0';
+ 	 		SRAM_nOE  <= '0';
+ --	 		SRAM_DB <= (others => 'Z');
+ --	 		sram_wbs_readdata <= (others => '0');
+ 	 		
+ 	 	elsif rising_edge(sram_clk) then
+ 	 		state <= next_state;
+ 	 		ack <= next_ack;
+ 	 		
+ 	 		if set_ram_address  = '1' then
+           	SRAM_ADDR(17 downto 0) <= sram_wbs_address(17 downto 0);          	
+ 	 			SRAM_nBLE <= not sram_wbs_sel(0);
+ 	 			SRAM_nBHE <= not sram_wbs_sel(1);	 
+ 	 			SRAM_nWR  <= not sram_wbs_write;
+ 	 			SRAM_nOE  <= sram_wbs_write;
+         	end if;
+         	
+ 			if next_ram_cs = '1' then 
+ 				SRAM_nCS0 <= sram_wbs_address(18);
+ 				SRAM_nCS1 <= not sram_wbs_address(18);
+ 			end if;
+ 	 	
+ 	 		
+ 	 		
+ 	 	end if;
+ 	 end process;
+ 	 
+ 	 sram_wbs_ack <= ack;
+ 	 
+ 	 SRAM_DB <= sram_wbs_writedata when (sram_wbs_write = '1') else (others => 'Z');
+	 sram_wbs_readdata <= SRAM_DB;
+ 	 
+	end generate;
+
+	
+	-- ############################################ Variante 4 ################################################################
+	 var4: if use_variante_4_c generate 	 
+ 	 
+ 	 -- set signals
+ 	 process (sram_clk, sram_reset_n,sram_wbs_strobe)
+ 	 begin
+ 	 	if sram_reset_n = '0' then
+ 	 		SRAM_nCS0 <= '1';
+ 			SRAM_nCS1 <= '1';
+ 			SRAM_nBLE <= '1';
+ 	 		SRAM_nBHE <= '1';	 
+ 	 		SRAM_nWR  <= '1';
+ 	 		SRAM_nOE  <= '1';
+ 	 		
+ 	 	elsif rising_edge(sram_clk) then
+ 	 		sram_wbs_strobe_d <= sram_wbs_strobe;	
+ 	 		
+ 	 		if(sram_wbs_strobe_d = '0' and sram_wbs_strobe = '1') then -- sram_wbs_strobe has rising edge
+ 	 			SRAM_nCS0 <= sram_wbs_address(18);
+ 				SRAM_nCS1 <= not sram_wbs_address(18);
+ 				SRAM_nBLE <= not sram_wbs_sel(0);
+ 	 			SRAM_nBHE <= not sram_wbs_sel(1);	 
+ 	 			SRAM_nWR  <= not sram_wbs_write;
+ 	 			SRAM_nOE  <= sram_wbs_write;
+ 	 		end if;
+ 	 		
+ 	 		sram_wbs_ack <= sram_wbs_strobe;
+ 	 		
+ 	 	end if;
+ 	 end process;
+ 	 
+ 	 SRAM_DB <= sram_wbs_writedata when (sram_wbs_write = '1') else (others => 'Z');
+	 sram_wbs_readdata <= SRAM_DB;
+	 SRAM_ADDR <= sram_wbs_address(17 downto 0);
+ 	 
+	end generate;
 	 
      
  end architecture sram_1;
