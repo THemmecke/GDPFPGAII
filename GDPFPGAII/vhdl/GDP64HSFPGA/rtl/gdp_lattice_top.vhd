@@ -64,15 +64,15 @@ entity gdp_lattice_top is
 		--------------------------
        -- Video-Memory data bus				
        --------------------------        	   
-		-- gdp_wbm8 connection		
-        gdphs_wbm_address       : out   std_logic_vector(18 downto 0);
-        gdphs_wbm_readdata      : in  std_logic_vector(15 downto 0);
-        gdphs_wbm_writedata     : out   std_logic_vector(15 downto 0);
-        gdphs_wbm_strobe        : out   std_logic;		
-        gdphs_wbm_write         : out   std_logic;
-        gdphs_wbm_ack           : in  std_logic;
-        gdphs_wbm_cycle         : out   std_logic;
-		gdphs_wbm_sel			: out std_logic_vector(1 downto 0);
+		
+		SRAM_nCS0    : out std_logic;
+       	SRAM_nCS1   : out std_logic;       
+	   	SRAM_ADDR   : out std_logic_vector(18 downto 0);	
+       	SRAM_DB     : inout std_logic_vector(15 downto 0);
+       	SRAM_nWR    : out std_logic;
+       	SRAM_nOE    : out std_logic;
+	   	SRAM_nBHE	: out std_logic;						
+	   	SRAM_nBLE	: out std_logic;
   
       
        --------------------------
@@ -166,15 +166,17 @@ architecture rtl of gdp_lattice_top is
          Vsync_o       : out std_ulogic;
          --------------------------
          -- Video-Memory data bus
-         --------------------------
-         sram_addr_o : out std_ulogic_vector(18 downto 0);
-         sram_data_o : out std_ulogic_vector(15 downto 0);
-         sram_data_i : in  std_ulogic_vector(15 downto 0);
-         sram_sel_o  : out std_ulogic_vector(1 downto 0);
-		 sram_cs_o   : out std_ulogic;
-         sram_we_o   : out std_ulogic;
-		 sram_ack_i		  : in std_ulogic;
-         --rom_ena_o   : out std_ulogic
+         --------------------------    
+         
+        SRAM_nCS0    : out std_logic;
+        SRAM_nCS1   : out std_logic;       
+	   	SRAM_ADDR   : out std_logic_vector(18 downto 0);	
+       	SRAM_DB     : inout std_logic_vector(15 downto 0);
+       	SRAM_nWR    : out std_logic;
+       	SRAM_nOE    : out std_logic;
+	   	SRAM_nBHE	: out std_logic;						
+	   	SRAM_nBLE	: out std_logic;
+	   	
          ---------------------------
 		 monitoring_o : out std_ulogic_vector(nr_mon_sigs_c-1 downto 0)
          );
@@ -366,27 +368,6 @@ architecture rtl of gdp_lattice_top is
 -- | | GDP-FPGA vorhanden
 -- | Reserviert 
 
- 
---  constant GDP_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"70"; -- r/w
---  constant SFR_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"60"; -- w  
---  constant COL_BASE_c         : std_ulogic_vector(7 downto 0) := X"A0"; -- r/w  
---  constant CLUT_BASE_c        : std_ulogic_vector(7 downto 0) := X"A4"; -- r/w 
---  constant KEY_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"68"; -- r  
---  constant DIP_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"69"; -- r  
---  constant MOUSE_BASE_ADDR_c  : std_ulogic_vector(7 downto 0) := X"88"; -- r/w  
---  constant SER_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"F0"; -- r/w  
---  constant SOUND_BASE_ADDR_c  : std_ulogic_vector(7 downto 0) := X"50"; -- r/w  
---  constant SPI_BASE_ADDR_c    : std_ulogic_vector(7 downto 0) := X"00"; -- r/w 
---  constant T1_BASE_ADDR_c     : std_ulogic_vector(7 downto 0) := X"F4"; -- r/w 
---  constant VDIP_BASE_ADDR_c   : std_ulogic_vector(7 downto 0) := X"20"; -- r/w 
---
---  constant KEY_OPTS_ADDR_c    : std_ulogic_vector(7 downto 0) := X"67"; -- r/w     		
-  
-  
---  constant GDP_BASE_ADDR1_c  : std_ulogic_vector(7 downto 0) := X"50"; -- r/w
---  constant SFR_BASE_ADDR1_c  : std_ulogic_vector(7 downto 0) := X"40"; -- w
---  constant KEY_BASE_ADDR1_c  : std_ulogic_vector(7 downto 0) := X"48"; -- r
---  constant DIP_BASE_ADDR1_c  : std_ulogic_vector(7 downto 0) := X"49"; -- r
   
   signal reset_n           : std_ulogic;
   
@@ -413,14 +394,14 @@ architecture rtl of gdp_lattice_top is
 --  signal Addr              : std_ulogic_vector(7 downto 0);
 --  signal data_in           : std_ulogic_vector(7 downto 0);
   signal output_en,fpga_en : std_ulogic;
-  signal key_cs,dip_cs,kopt_cs     : std_ulogic;																		-- TH
+  signal key_cs,dip_cs,kopt_cs     : std_ulogic;																		
   signal mouse_cs          : std_ulogic;
   
   signal BusyRX              : std_ulogic;
   signal DoutParRX,key_data  : std_ulogic_vector(7 downto 0);
   signal DataValidRX         : std_ulogic;
   signal OldDataValidRX      : std_ulogic;
-  signal gdp_base,sfr_base,key_base,dip_base,kopt_base : std_ulogic_vector(7 downto 0);        							-- TH
+  signal gdp_base,sfr_base,key_base,dip_base,kopt_base : std_ulogic_vector(7 downto 0);        							
   signal dipsw             : std_logic_vector(7 downto 0);
   signal mouse_data        : std_ulogic_vector(7 downto 0);
   
@@ -478,19 +459,7 @@ begin
   dipsw <= dipswitches_c;-- when addr_sel_i = '1' else
 --           dipswitches1_c;
 
---  gdp_base <= GDP_BASE_ADDR_c; -- when addr_sel_i = '0' else
---              GDP_BASE_ADDR1_c;
---  sfr_base <= SFR_BASE_ADDR_c; -- when addr_sel_i = '0' else
---              SFR_BASE_ADDR1_c;
---  key_base <= KEY_BASE_ADDR_c when addr_sel_i = '1' else
---              KEY_BASE_ADDR1_c;
---  dip_base <= DIP_BASE_ADDR_c when addr_sel_i = '1' else
---              DIP_BASE_ADDR1_c;
 
---  key_base <= KEY_BASE_ADDR_c;
---  dip_base <= DIP_BASE_ADDR_c;
- -- kopt_base <= KEY_OPTS_ADDR_c;		
-																	-- TH
   reset_n  <= gdphs_reset_n;
   nWr <= not gdphs_wbs_write;
   nRD <= gdphs_wbs_write;
@@ -567,14 +536,16 @@ begin
       pixel_blue_o  => blue_o,
       Hsync_o     => Hsync_o,
       Vsync_o     => Vsync_o,
+	 
 	  
-      sram_addr_o => GDP_SRAM_ADDR,
-      sram_data_o => GDP_SRAM_datao,
-      sram_data_i => GDP_SRAM_datai,
-      sram_cs_o  => GDP_SRAM_cs,
-      sram_we_o   => GDP_SRAM_we,
-	  sram_sel_o  => GDP_SRAM_sel,
-	  sram_ack_i  => gdphs_wbm_ack,
+	  SRAM_nCS0   =>    SRAM_nCS0  ,
+      SRAM_nCS1   =>    SRAM_nCS1  ,
+	  SRAM_ADDR   =>    SRAM_ADDR  ,
+      SRAM_DB     =>    SRAM_DB    ,
+      SRAM_nWR    =>    SRAM_nWR   ,
+      SRAM_nOE    =>    SRAM_nOE   ,
+	  SRAM_nBHE   => 	 SRAM_nBHE	,
+	  SRAM_nBLE   =>    SRAM_nBLE  ,
 	  
 	  monitoring_o => monitoring_o
       );
@@ -792,49 +763,6 @@ begin
     --t1_cs        <= '0';
     t1_irq       <= '0';
   end generate;
-  
-  
-  
-  --------------------------
-  -- Video-Memory data bus				
-  --------------------------
-  gdphs_wbm_address 	<= std_logic_vector(GDP_SRAM_ADDR);
-  gdphs_wbm_sel			<= std_logic_vector(GDP_SRAM_sel);
-  gdphs_wbm_writedata	<= std_logic_vector(GDP_SRAM_datao);
-  GDP_SRAM_datai   		<= std_ulogic_vector(gdphs_wbm_readdata);
-  
-  gdphs_wbm_write 		<= (GDP_SRAM_we and not gdphs_clk);
-  gdphs_wbm_strobe 		<= GDP_SRAM_cs;
-  gdphs_wbm_cycle  		<= GDP_SRAM_cs;
-  
-  
-  ---
-  --gdphs_wbm_address(18 downto 17)  <= (others => '0');
-  --gdphs_wbm_address(16)  <= GDP_SRAM_ena(1);
-  --gdphs_wbm_address(15 downto 0) <= std_logic_vector(GDP_SRAM_ADDR(16 downto 1));
-  
-  --SRAM_MUX: process(gdphs_clk)
-  --begin
-  --if(GDP_SRAM_ADDR(0) = '0') then
-	--gdphs_wbm_sel(0) <= '1';
-	--gdphs_wbm_sel(1) <= '0';
-	--GDP_SRAM_datai   <= std_ulogic_vector(gdphs_wbm_readdata(7 downto 0));
-	--gdphs_wbm_writedata(7 downto 0) <= std_logic_vector(GDP_SRAM_datao);
-	--gdphs_wbm_writedata(15 downto 8) <= (others => '0');
-  --else
-    --gdphs_wbm_sel(0) <= '0';
-	--gdphs_wbm_sel(1) <= '1';
-	--GDP_SRAM_datai   <= std_ulogic_vector(gdphs_wbm_readdata(15 downto 8));
-	--gdphs_wbm_writedata(15 downto 8) <= std_logic_vector(GDP_SRAM_datao);
-	--gdphs_wbm_writedata(7 downto 0) <= (others => '0');
-  --end if;
-  --end process;
-  
-  --gdphs_wbm_strobe <= (GDP_SRAM_ena(0) or GDP_SRAM_ena(1) );
-  --gdphs_wbm_cycle  <= (GDP_SRAM_ena(0) or GDP_SRAM_ena(1) );
- 
-  --gdphs_wbm_write <= (GDP_SRAM_we and not gdphs_clk);
-  ---
   
   
   --- INT ---

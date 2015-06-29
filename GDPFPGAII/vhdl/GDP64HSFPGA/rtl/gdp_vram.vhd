@@ -58,14 +58,16 @@ entity gdp_vram is
     rd_data_o         : out std_ulogic_vector(7 downto 0);
     rd_busy_o         : out std_ulogic;
     rd_ack_o          : out std_ulogic;
-    -- SRAM control signals
-    sram_addr_o       : out std_ulogic_vector(18 downto 0);
-    sram_data_o       : out std_ulogic_vector(15 downto 0);
-    sram_data_i       : in  std_ulogic_vector(15 downto 0);
-    sram_sel_o        : out std_ulogic_vector(1 downto 0);
-    sram_cs_o         : out std_ulogic;
-    sram_we_o         : out std_ulogic;
-	sram_ack_i		  : in std_ulogic;
+    -- SRAM / ROM control signals
+   
+    SRAM_nCS0    : out std_logic;
+    SRAM_nCS1   : out std_logic;       
+	SRAM_ADDR   : out std_logic_vector(18 downto 0);	
+    SRAM_DB     : inout std_logic_vector(15 downto 0);
+    SRAM_nWR    : out std_logic;
+    SRAM_nOE    : out std_logic;
+	SRAM_nBHE	: out std_logic;						
+	SRAM_nBLE	: out std_logic;
     -- ext. ROM signals
     rom_ena_o         : out std_ulogic;	
 	--------------------------
@@ -100,11 +102,13 @@ architecture rtl of gdp_vram is
   signal set_rom_data                       : std_ulogic;
   
   signal sram_data_i_tmp		    : std_ulogic_vector(15 downto 0);
-  
-  
-  signal ram_sel, next_ram_sel        : std_ulogic_vector(1 downto 0);
-  signal ram_cs, next_ram_cs          : std_ulogic;
-  signal sram_cs_s					  : std_ulogic;
+    
+  signal ram_cs0, next_ram_cs0          : std_ulogic;
+  signal ram_cs1, next_ram_cs1          : std_ulogic;
+  signal ram_bhe, next_ram_bhe          : std_ulogic;
+  signal ram_ble, next_ram_ble          : std_ulogic;
+  signal ram_oe, next_ram_oe          : std_ulogic;
+  signal ram_ack					  : std_ulogic;
   
   signal set_host_data  				: std_ulogic;
   signal host_data, next_host_data 		: std_ulogic_vector(15 downto 0);
@@ -116,13 +120,13 @@ begin
 
   monitoring_o(0)	<= ram_wren;		-- J2
   monitoring_o(1)	<= blank_i;-- J5
-  monitoring_o(2)   <= sram_cs_s; -- J3
+  monitoring_o(2)   <= ram_ack; -- J3
   monitoring_o(nr_mon_sigs_c-1 downto 3) <= (others => '0');
 	
   
   -- DP-RAM Controller FSM for ext. SRAM/ROM
   -- asynchroner Prozess, definiert die Bedingungen für Übergänge der FSM beim nächsten Clock-Cycle
-  process(state, kernel_addr_i,kernel_wr_i,rd_addr_i,ram_sel,
+  process(state, kernel_addr_i,kernel_wr_i,rd_addr_i,
           kernel_req_i,kernel_req_pend,rd_req_i,rd_pend,kernel_clk_en_i,
           sram_data_i_tmp, chr_rom_ena_i, rom_req_pend, blank_i)
           
@@ -130,37 +134,46 @@ begin
     begin
       set_ram_address  <= '1';
       next_ram_address <= "00" & kernel_addr_i(17 downto 1);
-      next_ram_wren    <= kernel_wr_i;      
-      next_ram_sel <= kernel_addr_i(0) & not kernel_addr_i(0);	
-      next_ram_cs <= '1';	  
+      next_ram_wren    <= kernel_wr_i;  
+      next_ram_oe      <= not kernel_wr_i;          
+      next_ram_ble <=  not kernel_addr_i(0);
+      next_ram_bhe <=  kernel_addr_i(0);
+      next_ram_cs0 <= '1';	 
+      next_ram_cs1 <= '0'; 
       if kernel_wr_i='0' then
         next_state     <= kernel_read_e;
       else
-        next_kernel_ack  <= sram_ack_i;   		        
+        next_kernel_ack  <= ram_ack;   		        
       end if;
     end procedure;
     
     procedure do_host_acc_p is
     begin
       set_ram_address  <= '1';
-      next_ram_address <= host_addr_i;
-      next_ram_wren    <= host_wr_i;      
-      next_ram_sel <= host_sel_i;	
-      next_ram_cs <= '1';	  
+      next_ram_address <= host_addr_i(18 downto 0);
+      next_ram_wren    <= host_wr_i;
+      next_ram_oe      <= not host_wr_i;      
+      next_ram_ble <=  not host_sel_i(1);
+	  next_ram_bhe <=  not host_sel_i(0);	
+      next_ram_cs0 <= not host_addr_i(18);	  
+      next_ram_cs1 <= host_addr_i(18);	  
       if host_wr_i='0' then
         next_state     <= host_read_e;
       else
-        next_host_ack  <= sram_ack_i;   		
+        next_host_ack  <= ram_ack;   		
       end if;
     end procedure;
     
     procedure do_vid_rd_p is
     begin
       set_ram_address  <= '1';
-      next_ram_address <= "00" & rd_addr_i(17 downto 1);	  
-      next_ram_sel <= rd_addr_i(0) & not rd_addr_i(0);
+      next_ram_address <= "00" & rd_addr_i(17 downto 1);	      
       next_ram_wren    <= '0';
-	  next_ram_cs <= '1';	
+      next_ram_oe      <= '1'; 
+      next_ram_ble <=  not rd_addr_i(0);
+      next_ram_bhe <=  rd_addr_i(0);
+	  next_ram_cs0 <= '1';	
+	  next_ram_cs1 <= '0'; 
       next_state       <= vid_read_e;
     end procedure;
     
@@ -183,14 +196,16 @@ begin
     next_kernel_data <= (others => '-');
     set_kernel_data  <= '0';
     next_ram_wren    <= '0';
---    next_ram_en      <= (others => '0');
     next_rom_en      <= '0';
     next_rom_data    <= (others => '-');
     set_rom_data     <= '0';
     next_rom_ack     <= '0';
+	next_ram_ble	<= '0';
+	next_ram_bhe 	<= '0';
 	--
-	next_ram_sel     <= (others => '-');
-	next_ram_cs <= '0';	
+	
+	next_ram_cs0 <= '0';	
+	next_ram_cs1 <= '0';	
 	
 	set_host_data  <= '0';
 	next_host_data <= (others => '-');
@@ -215,10 +230,9 @@ begin
 
       when vid_read_e =>
         next_state   <= idle_e;
-        next_rd_ack  <= sram_ack_i;
+        next_rd_ack  <= ram_ack;
         set_rd_data  <= '1';
-		if(ram_sel(0) = '1') then
-	    --if(rd_addr_i(0) = '0') then
+        if(ram_ble = '1') then
           next_rd_data <= sram_data_i_tmp(7 downto 0);
         else
           next_rd_data <= sram_data_i_tmp(15 downto 8);
@@ -233,10 +247,9 @@ begin
         -- kernel read
       when kernel_read_e =>
         next_state   <= idle_e;
-        next_kernel_ack  <= sram_ack_i;
+        next_kernel_ack  <= ram_ack;
         set_kernel_data  <= '1';
-		if(ram_sel(0) = '1') then
-	    --if(kernel_addr_i(0) = '0') then
+		if(ram_ble = '1') then
           next_kernel_data <= sram_data_i_tmp(7 downto 0);
         else
           next_kernel_data <= sram_data_i_tmp(15 downto 8);
@@ -253,7 +266,7 @@ begin
         -- host read
       when host_read_e =>
         next_state   <= idle_e;
-        next_host_ack  <= sram_ack_i;
+        next_host_ack  <= ram_ack;
         set_host_data  <= '1';		
         next_host_data <= sram_data_i_tmp;
         
@@ -270,7 +283,7 @@ begin
         -- FIXME: configurable waitstates for slower ROMs, (use ack, see FIXME at SRAM_MUX )
         if not INT_CHR_ROM_g then
           next_state    <= idle_e;
-          next_rom_ack  <= sram_ack_i;
+          next_rom_ack  <= ram_ack;
           set_rom_data  <= '1';
           next_rom_data <= sram_data_i_tmp(7 downto 0);
           if (rd_req_i or rd_pend)='1' then
@@ -290,11 +303,12 @@ begin
     if reset_n_i = ResetActive_c then
       state <= idle_e;
       ram_address <= (others => '0');
-	  ram_sel     <= (others => '0'); 
-	  ram_cs      <= '0';
+	  ram_cs0      <= '0';
+	  ram_cs1      <= '0';
       rd_data     <= (others => '0');
       kernel_data <= (others => '0');
       ram_wren    <= '0';
+      ram_oe <= '0';
       kernel_req_pend <= '0';
       rd_pend     <= '0';
       kernel_ack_o<= '0';
@@ -316,12 +330,16 @@ begin
 		-- set address, sel lines
         if set_ram_address  = '1' then
           ram_address <= next_ram_address;
-          ram_sel     <= next_ram_sel;
+          ram_ble <= next_ram_ble;
+          ram_bhe <= next_ram_bhe;
         end if;
 		
-		-- set cs, we lines
-		ram_cs      <= next_ram_cs;
+		-- set cs, we, oe lines
+
+		ram_cs0      <= next_ram_cs0;
+		ram_cs1      <= next_ram_cs1;
 		ram_wren    <= next_ram_wren; 
+		ram_oe      <= next_ram_oe;
 		
 		-- set video read data
         if set_rd_data = '1' then
@@ -346,13 +364,11 @@ begin
 		-- set write data (kernel)
 		if (kernel_clk_en_i and kernel_req_i)='1' then
           kernel_req_pend  <= '1';
-		  --if(ram_sel(0) = '1') then
 		  if(kernel_addr_i(0)='0') then                          
              wr_data(7 downto 0) <= kernel_data_i;
 		  else              
              wr_data(15 downto 8) <= kernel_data_i;			  
-		  end if;		
-        --end if;
+		  end if;	
         
         -- set write data (host)
 		elsif (host_req_i)='1' then
@@ -414,13 +430,19 @@ begin
   
   host_busy_o   <= host_req_pend;
   host_data_o   <= host_data;
-  
-  sram_addr_o         <= ram_address;
-  sram_data_o         <= wr_data;
-  sram_sel_o          <= ram_sel;
-  sram_cs_o           <= ram_cs;  
-  sram_we_o           <= ram_wren; 
-  sram_data_i_tmp     <= sram_data_i;	
+	
+    SRAM_nCS0    	<= not ram_cs0;
+    SRAM_nCS1    	<= not ram_cs1;
+	SRAM_ADDR    	<= std_logic_vector(ram_address);	
+    SRAM_nWR    	<= not ram_wren;
+    SRAM_nOE    	<= not ram_oe;
+	SRAM_nBHE		<= not ram_bhe;						
+	SRAM_nBLE		<= not ram_ble;
+	
+	SRAM_DB  <= std_logic_vector(wr_data) after 1 ns when ((ram_cs0 or ram_cs1) and ram_wren)='1' else  (others => 'Z') after 1 ns;	
+    sram_data_i_tmp <= std_ulogic_vector(SRAM_DB);  
+    
+    ram_ack <= '1';         
   --
 
   rom_ena_o <= '0';

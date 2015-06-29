@@ -13,6 +13,7 @@
 library IEEE;
 
 
+
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 --use work.DffGlobal.all;
@@ -106,7 +107,7 @@ entity gdp_fpgaii_top is
        --------------------------
        SRAM_nCS0    : out std_logic;
        SRAM_nCS1   : out std_logic;       
-	   SRAM_ADDR   : out std_logic_vector(17 downto 0);	
+	   SRAM_ADDR   : out std_logic_vector(18 downto 0);	
        SRAM_DB     : inout std_logic_vector(15 downto 0);
        SRAM_nWR    : out std_logic;
        SRAM_nOE    : out std_logic;
@@ -216,16 +217,16 @@ architecture rtl of gdp_fpgaii_top is
 	   
        --------------------------
        -- Video-Memory data bus				
-       --------------------------       	  
-	   -- gdp_wbm8 connection		
-        gdphs_wbm_address       : out   std_logic_vector(18 downto 0);
-        gdphs_wbm_readdata      : in  std_logic_vector(15 downto 0);
-        gdphs_wbm_writedata     : out   std_logic_vector(15 downto 0);
-        gdphs_wbm_strobe        : out   std_logic;		
-        gdphs_wbm_write         : out   std_logic;
-        gdphs_wbm_ack           : in  std_logic;
-        gdphs_wbm_cycle         : out   std_logic;
-		gdphs_wbm_sel           : out std_logic_vector(1 downto 0);   -- byte lane selct signals (16 bit bus)
+       --------------------------       	 	  
+		
+		SRAM_nCS0    : out std_logic;
+       	SRAM_nCS1   : out std_logic;       
+	   	SRAM_ADDR   : out std_logic_vector(18 downto 0);	
+       	SRAM_DB     : inout std_logic_vector(15 downto 0);
+       	SRAM_nWR    : out std_logic;
+       	SRAM_nOE    : out std_logic;
+	   	SRAM_nBHE	: out std_logic;						
+	   	SRAM_nBLE	: out std_logic;
 				
 	   --------------------------
        -- Monitoring (Debug) signals
@@ -265,35 +266,6 @@ architecture rtl of gdp_fpgaii_top is
 	);
 	end component;
 	
--- compoment sram --------------------
-component sram is
-	port(
-		-- sram_swb16 connection
-		sram_reset_n					   : in  std_logic;
-		sram_clk						   : in  std_logic;
-		
-        sram_wbs_address                : in  std_logic_vector(18 downto 0);
-        sram_wbs_readdata               : out   std_logic_vector(15 downto 0);
-        sram_wbs_writedata              : in  std_logic_vector(15 downto 0);
-        sram_wbs_ack                    : out   std_logic;
-        sram_wbs_sel				    : in  std_logic_vector(1 downto 0);
-        sram_wbs_strobe                 : in  std_logic;
-        sram_wbs_cycle                  : in  std_logic;
-        sram_wbs_write                  : in  std_logic;
-
-		-- sram external connections
-		
-		SRAM_ADDR						: out std_logic_vector(17 downto 0);
-		SRAM_DB							: inout std_logic_vector(15 downto 0);
-		
-		SRAM_nWR						: out std_logic;
-		SRAM_nOE						: out std_logic;
-		SRAM_nCS0						: out std_logic;
-		SRAM_nCS1						: out std_logic;
-		SRAM_nBHE						: out std_logic;
-		SRAM_nBLE						: out std_logic
-	);
-	end component;
 
 	-- component signal synchronizer	
 	component InputSync
@@ -348,20 +320,7 @@ component sram is
 	
 	signal hsync : std_logic;
 	signal vsync : std_logic;
-	
-	-- signals to SRAM module  ----------------------------------------------------------------------
-	-- sram_swb8 connection
-	
 		
-    signal sram_wbs_address                : std_logic_vector(18 downto 0);
-    signal sram_wbs_readdata               : std_logic_vector(15 downto 0);
-    signal sram_wbs_writedata              : std_logic_vector(15 downto 0);
-    signal sram_wbs_ack                    : std_logic;
-	signal sram_wbs_sel		   : std_logic_vector(1 downto 0);   -- byte lane selct signals (16 bit bus)
-    signal sram_wbs_strobe                 : std_logic;
-    signal sram_wbs_cycle                  : std_logic;
-    signal sram_wbs_write                  : std_logic;
-	
 	
 	-- signals to gide modul	
 	
@@ -391,9 +350,7 @@ component sram is
 	
 	signal cs_vector		: std_logic_vector(num_cs_signals_c-1 downto 0);	-- cs Signals generated in this module
 	
-	-------------------------------------
-	-- wrapper signals
-	-------------------------------------
+
 	
 	signal write      : std_logic;
     signal read       : std_logic;
@@ -766,18 +723,7 @@ begin
      wbm_ack <=  (gdphs_wbs_ack and s_gdphs_cs)  or  (gide_wbs_ack and s_gide_cs);
 						 
 	 
-     -------------------------------
-     -- SRAM Connection		      --
-     -------------------------------
-     sram_wbs_address    <= gdphs_wbm_address;
-     gdphs_wbm_readdata  <= sram_wbs_readdata;
-     sram_wbs_writedata  <= gdphs_wbm_writedata;
-     gdphs_wbm_ack       <= sram_wbs_ack;
-     sram_wbs_strobe 	 <= gdphs_wbm_strobe;
-     sram_wbs_cycle 	 <= gdphs_wbm_cycle;
-     sram_wbs_write 	 <= gdphs_wbm_write;
-     sram_wbs_sel        <= gdphs_wbm_sel;
-			
+     
 
 --------------------------------------------------------------------------------------------
 -- gdphs Module: A. Voggeneder  ************************************************************
@@ -862,15 +808,16 @@ begin
        SD_MISO_i => SD_MISO_i,
        --------------------------
        -- Video-Memory data bus				
-       --------------------------       
-	   gdphs_wbm_address      => gdphs_wbm_address,
-       gdphs_wbm_readdata     => gdphs_wbm_readdata,
-       gdphs_wbm_writedata    => gdphs_wbm_writedata,
-       gdphs_wbm_strobe       => gdphs_wbm_strobe,
-       gdphs_wbm_write        => gdphs_wbm_write,
-       gdphs_wbm_ack          => gdphs_wbm_ack,
-       gdphs_wbm_cycle        => gdphs_wbm_cycle,
-	   gdphs_wbm_sel		 => gdphs_wbm_sel,   -- byte lane selct signals (16 bit bus)
+       --------------------------       	 
+	   
+	   SRAM_nCS0   =>    SRAM_nCS0  ,
+       SRAM_nCS1   =>    SRAM_nCS1  ,
+	   SRAM_ADDR   =>    SRAM_ADDR  ,
+       SRAM_DB     =>    SRAM_DB    ,
+       SRAM_nWR    =>    SRAM_nWR   ,
+       SRAM_nOE    =>    SRAM_nOE   ,
+	   SRAM_nBHE   => 	 SRAM_nBHE	,
+	   SRAM_nBLE   =>    SRAM_nBLE  ,
 	   	   
 	   ---------------------------
 	   -- Debug
@@ -908,35 +855,6 @@ begin
            	IDE_IA							=> IDE_IA
 	);
 	
-	SRAM1: sram
-		port map(
-		-- sram_swb16 connection
-		sram_reset_n					=> nReset,
-		sram_clk						=> clk_i,
-		
-        sram_wbs_address                => sram_wbs_address,
-        sram_wbs_readdata               => sram_wbs_readdata,
-        sram_wbs_writedata              => sram_wbs_writedata,
-        sram_wbs_ack                    => sram_wbs_ack,
-        sram_wbs_strobe                 => sram_wbs_strobe,
-        sram_wbs_sel				    => sram_wbs_sel,
-        sram_wbs_cycle                  => sram_wbs_cycle,
-        sram_wbs_write                  => sram_wbs_write,
-
-		-- sram external connections
-		
-		SRAM_ADDR						=> SRAM_ADDR,
-		SRAM_DB							=> SRAM_DB,
-		
-		SRAM_nWR						=> SRAM_nWR,
-		SRAM_nOE						=> SRAM_nOE,
-		SRAM_nCS0						=> SRAM_nCS0,
-		SRAM_nCS1						=> SRAM_nCS1,
-		SRAM_nBHE						=> SRAM_nBHE,
-		SRAM_nBLE						=> SRAM_nBLE
-		
-	);
-		
 
 
 end rtl;

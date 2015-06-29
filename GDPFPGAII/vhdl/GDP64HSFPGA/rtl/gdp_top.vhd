@@ -55,14 +55,15 @@ entity gdp_top is
        --------------------------
        -- Video-Memory data bus
        --------------------------
-       sram_addr_o : out std_ulogic_vector(18 downto 0);
-       sram_data_o : out std_ulogic_vector(15 downto 0);
-       sram_data_i : in  std_ulogic_vector(15 downto 0);
-       sram_sel_o  : out std_ulogic_vector(1 downto 0);
-	   sram_cs_o   : out std_ulogic;
-       sram_we_o   : out std_ulogic;
-	   sram_ack_i  : in std_ulogic;
-       --rom_ena_o   : out std_ulogic
+       
+        SRAM_nCS0    : out std_logic;
+        SRAM_nCS1   : out std_logic;       
+	   	SRAM_ADDR   : out std_logic_vector(18 downto 0);	
+       	SRAM_DB     : inout std_logic_vector(15 downto 0);
+       	SRAM_nWR    : out std_logic;
+       	SRAM_nOE    : out std_logic;
+	   	SRAM_nBHE	: out std_logic;						
+	   	SRAM_nBLE	: out std_logic;
        --------------------------
        -- Monitoring (Debug) signals
        --------------------------
@@ -187,14 +188,17 @@ architecture rtl of gdp_top is
       rd_data_o         : out std_ulogic_vector(7 downto 0);
       rd_busy_o         : out std_ulogic;
       rd_ack_o          : out std_ulogic;
-      -- SRAM / ROM control signals
-      sram_addr_o       : out std_ulogic_vector(18 downto 0);
-      sram_data_o       : out std_ulogic_vector(15 downto 0);
-      sram_data_i       : in  std_ulogic_vector(15 downto 0);
-      sram_sel_o        : out std_ulogic_vector(1 downto 0);
-      sram_we_o         : out std_ulogic;
-	  sram_cs_o			: out std_ulogic;
-	  sram_ack_i		  : in std_ulogic;
+      -- SRAM / ROM control signals     
+	  
+      SRAM_nCS0    : out std_logic;
+      SRAM_nCS1   : out std_logic;       
+	  SRAM_ADDR   : out std_logic_vector(18 downto 0);	
+      SRAM_DB     : inout std_logic_vector(15 downto 0);
+      SRAM_nWR    : out std_logic;
+      SRAM_nOE    : out std_logic;
+	  SRAM_nBHE	: out std_logic;						
+	  SRAM_nBLE	: out std_logic;
+	   	
       -- ext. ROM signals
       rom_ena_o         : out std_ulogic;
 	  --------------------------
@@ -394,22 +398,21 @@ begin
       rd_data_o       => vid_rd_data,
       rd_busy_o       => vid_rd_busy,
       rd_ack_o        => vid_rd_ack,
-      sram_addr_o     => sram_addr_o,
-      sram_data_o     => sram_data_o,
-      sram_data_i     => sram_data_i,
-      sram_sel_o      => sram_sel_o,
-	  sram_cs_o		 => sram_cs_o,
-      sram_we_o       => sram_we_o,
-	  sram_ack_i     => sram_ack_i,
-      --rom_ena_o       => rom_ena_o
+      
+      SRAM_nCS0   =>    SRAM_nCS0  ,
+	  SRAM_nCS1   =>    SRAM_nCS1  ,
+	  SRAM_ADDR   =>    SRAM_ADDR  ,
+	  SRAM_DB     =>    SRAM_DB    ,
+	  SRAM_nWR    =>    SRAM_nWR   ,
+	  SRAM_nOE    =>    SRAM_nOE   ,
+	  SRAM_nBHE   => 	SRAM_nBHE	,
+	  SRAM_nBLE   =>    SRAM_nBLE  ,
+
 	  -- debug out
 	  monitoring_o			  => monitoring_o
     );
 
---  gdp_en <= CS_i when Adr_i(7 downto 4) = X"7" else
---            '0';
---  sfr_en <= CS_i when Adr_i(7 downto 4) = X"6" else
---            '0';
+
   
   -- Prozess zum schreiben der SFR's
   Regs : process(clk_i, reset_n_i)
