@@ -9,9 +9,6 @@
         <Source name="GDPFPGAII/vhdl/gide.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="GDPFPGAII/vhdl/sram.vhd" type="VHDL" type_short="VHDL">
-            <Options/>
-        </Source>
         <Source name="GDPFPGAII/vhdl/gdp_fpgaii-p.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>

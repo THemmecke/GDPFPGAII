@@ -30,11 +30,6 @@ set StdArithNoWarnings 0
 
 
 
-Tutorials:
-http://www.tkt.cs.tut.fi/tools/public/tutorials/mentor/modelsim/getting_started/gsms.html
-
-
-
 --------------------
 
 PS2Keyboard-Only:
