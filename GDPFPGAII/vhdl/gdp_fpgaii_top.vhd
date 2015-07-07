@@ -612,7 +612,7 @@ begin
 						wbm_sel(1) <= '1';
 					else
 						wbm_sel(1) <= '0';
-					end if;	
+					end if;
 					
 					if(sram_cs = '1') then  -- 68020 access to sram (16Bit)
 						wbm_address(18 downto 1)    <= nkc_ADDR_i(17 downto 0);

@@ -12,7 +12,6 @@
 -- Copyright (c) 2007 by Andreas Voggeneder
 --------------------------------------------------------------------------------
 
--- evtl. wr_data erweitern auf kernel_wr_data und host_wr_data ...da diese unabhängig voneinander gespeichert werden müssen/können (wg. pending)
 
 library ieee;
   use ieee.std_logic_1164.all;
@@ -153,14 +152,17 @@ begin
       next_ram_address <= host_addr_i(17 downto 0);
       next_ram_wren    <= host_wr_i;
       next_ram_oe      <= not host_wr_i;      
-      next_ram_ble <=  not host_sel_i(1);
-	  next_ram_bhe <=  not host_sel_i(0);	
+      
+      next_ram_ble <=  host_sel_i(0);
+	  next_ram_bhe <=  host_sel_i(1);		  	 
+	  
       next_ram_cs0 <= not host_addr_i(18);	  
       next_ram_cs1 <= host_addr_i(18);	  
       if host_wr_i='0' then
         next_state     <= host_read_e;
       else
         next_host_ack  <= ram_ack;   		
+        next_state     <= host_read_e;   		
       end if;
     end procedure;
     
@@ -183,6 +185,10 @@ begin
       next_ram_address(chr_rom_addr_i'range) <= chr_rom_addr_i;
       next_rom_en      <= '1';
       next_state       <= rom_read_e;
+      next_ram_ble <=  not chr_rom_addr_i(0);
+      next_ram_bhe <=  chr_rom_addr_i(0);
+	  next_ram_cs0 <= '1';	
+	  next_ram_cs1 <= '0'; 
     end procedure;   
     
   begin
@@ -240,8 +246,8 @@ begin
 		
         if ((kernel_clk_en_i and kernel_req_i) or kernel_req_pend)='1' then
           do_kernel_acc_p;
-        elsif (host_req_i)='1' then
-          do_host_acc_p;   
+--        elsif (host_req_i)='1' then
+--          do_host_acc_p;   
         end if;
 
         -- kernel read
@@ -259,8 +265,8 @@ begin
           do_vid_rd_p;
         elsif (kernel_clk_en_i and kernel_req_i)='1' then
           do_kernel_acc_p;  
-        elsif (host_req_i)='1' then
-          do_host_acc_p;                            
+--       elsif (host_req_i)='1' then
+--         do_host_acc_p;                            
         end if;
         
         -- host read
@@ -272,15 +278,15 @@ begin
         
         if (host_req_i or host_req_pend)='1' then
           do_host_acc_p;
-        elsif (rd_req_i or rd_pend)='1' then
-          do_vid_rd_p;
-        elsif (kernel_clk_en_i and kernel_req_i)='1' then
-          do_kernel_acc_p;                           
+ --       elsif (rd_req_i or rd_pend)='1' then
+ --        do_vid_rd_p;
+ --      elsif (kernel_clk_en_i and kernel_req_i)='1' then
+ --        do_kernel_acc_p;                           
         end if;
         
        
       when rom_read_e =>
-        -- FIXME: configurable waitstates for slower ROMs, (use ack, see FIXME at SRAM_MUX )
+        -- FIXME: configurable waitstates for slower ROMs
         if not INT_CHR_ROM_g then
           next_state    <= idle_e;
           next_rom_ack  <= ram_ack;
@@ -322,6 +328,9 @@ begin
       host_data <= (others => '0');
       host_req_pend <= '0';
       host_ack_o<= '0';
+      
+      ram_ble <= '0';
+      ram_bhe <= '0';
 	  
     elsif rising_edge(clk_i) then
       if clk_en_i = '1' then
@@ -431,18 +440,18 @@ begin
   host_busy_o   <= host_req_pend;
   host_data_o   <= host_data;
 	
-    SRAM_nCS0    	<= not ram_cs0;
-    SRAM_nCS1    	<= not ram_cs1;
-	SRAM_ADDR    	<= std_logic_vector(ram_address);	
-    SRAM_nWR    	<= not ram_wren;
-    SRAM_nOE    	<= not ram_oe;
-	SRAM_nBHE		<= not ram_bhe;						
-	SRAM_nBLE		<= not ram_ble;
-	
-	SRAM_DB  <= std_logic_vector(wr_data) after 1 ns when ((ram_cs0 or ram_cs1) and ram_wren)='1' else  (others => 'Z') after 1 ns;	
-    sram_data_i_tmp <= std_ulogic_vector(SRAM_DB);  
-    
-    ram_ack <= '1';         
+  SRAM_nCS0    	<= not ram_cs0;
+  SRAM_nCS1    	<= not ram_cs1;
+  SRAM_ADDR    	<= std_logic_vector(ram_address);	
+  SRAM_nWR    	<= not ram_wren;
+  SRAM_nOE    	<= not ram_oe;
+  SRAM_nBHE		<= not ram_bhe;						
+  SRAM_nBLE		<= not ram_ble;
+
+  SRAM_DB  <= std_logic_vector(wr_data) after 1 ns when ((ram_cs0 or ram_cs1) and ram_wren)='1' else  (others => 'Z') after 1 ns;	
+  sram_data_i_tmp <= std_ulogic_vector(SRAM_DB);  
+  
+  ram_ack <= '1';         
   --
 
   rom_ena_o <= '0';
